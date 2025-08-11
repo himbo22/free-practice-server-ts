@@ -1,6 +1,12 @@
 import App from "./index";
 import { sum, sub, div, mul } from "@himbo22/sum";
+import { drizzle } from "drizzle-orm/postgres-js";
+
 const app = new App();
+
+const db = drizzle(process.env.DATABASE_URL);
+
+// const result = await db.execute("select 1");
 
 interface ApiResponse<T> {
   payload?: T;

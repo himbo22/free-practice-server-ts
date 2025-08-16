@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Landing Page</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+
+<body>
+  <header>
+    <nav class="navbar">
+      <h1 class="logo">ILLIT</h1>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h2>Welcome to My Landing Page</h2>
+      <p>A simple and clean design for your product or service.</p>
+    </div>
+  </section>
+
+  <section id="features" class="features">
+    <h2>User Feedbacks</h2>
+    <div class="feature-list">
+      <% items.forEach(item=> { %>
+        <div class="feature">
+          <h3>
+            <%= item.email %>
+          </h3>
+          <p>
+            <%= item.content %>
+          </p>
+        </div>
+        <% }) %>
+    </div>
+  </section>
+
+  <section id="about" class="about">
+    <h2>About Us</h2>
+    <p>We are a passionate team building amazing experiences for our users.</p>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 MyBrand. All rights reserved.</p>
+  </footer>
+</body>
+
+</html>

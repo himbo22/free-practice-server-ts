@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Landing Page</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+
+<body>
+  <section id="contact" class="contact">
+    <h2 style="margin: 0;">Contact Us</h2>
+    <form id="contactForm">
+      <input type="email" name="email" placeholder="Your Email" required>
+      <textarea name="content" placeholder="Your Message" required></textarea>
+      <button type="submit" class="btn">Send Contact</button>
+    </form>
+  </section>
+</body>
+
+<script>
+  addEventListener("DOMContentLoaded", (event) => {
+    const form = document.getElementById("contactForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const jsonBody = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonBody),
+        });
+
+        const data = await res.json();
+        console.log("Server response:", data);
+        alert("Ok");
+
+        if (res.ok) {
+          form.reset();
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Something went wrong!");
+      }
+    });
+  })
+</script>
+
+</html>

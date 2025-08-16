@@ -98,7 +98,7 @@ var App = /** @class */ (function () {
     };
     App.prototype.serverHandler = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var resCustom, reqCustom, sanitized, matched, fullUrl, parsedUrl, queryParams, handlers, body, chunk, e_1_1, error_1, _i, handlers_1, handler;
+            var resCustom, reqCustom, sanitized, matched, fullUrl, parsedUrl, queryParams, handlers, body, chunk, e_1_1, contentType, error_1, _i, handlers_1, handler;
             var _a, req_1, req_1_1;
             var _b, e_1, _c, _d;
             return __generator(this, function (_e) {
@@ -178,7 +178,16 @@ var App = /** @class */ (function () {
                     case 12: return [7 /*endfinally*/];
                     case 13:
                         if (body) {
-                            reqCustom.body = JSON.parse(body);
+                            contentType = req.headers["content-type"] || "";
+                            if (contentType.includes("application/json")) {
+                                reqCustom.body = JSON.parse(body);
+                            }
+                            else if (contentType.includes("application/x-www-form-urlencoded")) {
+                                reqCustom.body = Object.fromEntries(new URLSearchParams(body));
+                            }
+                            else {
+                                reqCustom.body = { raw: body };
+                            }
                         }
                         _e.label = 14;
                     case 14: return [3 /*break*/, 16];

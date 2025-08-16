@@ -36,37 +36,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Application = void 0;
 var drizzle_orm_1 = require("drizzle-orm");
 var index_1 = require("./index");
 var sum_1 = require("@himbo22/sum");
 var node_postgres_1 = require("drizzle-orm/node-postgres");
 var schema_1 = require("./drizzle/schema");
-var Application = /** @class */ (function () {
-    function Application() {
-        this.app = new index_1.default();
-        this.db = (0, node_postgres_1.drizzle)("postgres://postgres:hoanglon@localhost:5432/8_7_2025");
-        this.initializeRoutes();
-    }
-    Application.prototype.initializeRoutes = function () {
-        // User routes
-        this.app.get("/users", this.getAllUsers.bind(this));
-        this.app.get("/users/:id", this.getUserById.bind(this));
-        this.app.post("/users", this.createUser.bind(this));
-        this.app.put("/users/:id", this.updateUser.bind(this));
-        this.app.patch("/users/:id", this.patchUser.bind(this));
-        this.app.del("/users/:id", this.deleteUser.bind(this));
-        // Math routes
-        this.app.post("/sum", this.mathOperation(sum_1.sum));
-        this.app.post("/sub", this.mathOperation(sum_1.sub));
-        this.app.post("/mul", this.mathOperation(sum_1.mul));
-        this.app.post("/div", this.mathOperation(sum_1.div));
-        // Test routes
-        this.app.get("/test", this.testGet.bind(this));
-        this.app.post("/test", this.testPost.bind(this));
-    };
-    // Helper method for math operations
-    Application.prototype.mathOperation = function (operation) {
+var createApp = function () {
+    var app = new index_1.default();
+    var db = (0, node_postgres_1.drizzle)("postgres://postgres:hoanglon@localhost:5432/8_7_2025");
+    var mathOperation = function (operation) {
         return function (req, res) {
             var numbers = req.body;
             try {
@@ -88,248 +66,229 @@ var Application = /** @class */ (function () {
             }
         };
     };
-    // Route handlers
-    Application.prototype.getAllUsers = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var users, response;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.db.select().from(schema_1.User)];
-                    case 1:
-                        users = _a.sent();
-                        response = {
-                            payload: users,
+    var getAllUsers = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+        var users, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, db.select().from(schema_1.User)];
+                case 1:
+                    users = _a.sent();
+                    response = {
+                        payload: users,
+                        success: true,
+                        message: "alright",
+                        errorCode: null,
+                    };
+                    res.json(response);
+                    return [2 /*return*/];
+            }
+        });
+    }); };
+    var getUserById = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+        var id, user;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    id = parseInt(req.params.id, 10);
+                    if (isNaN(id)) {
+                        return [2 /*return*/, res.status(400).json({
+                                success: false,
+                                message: "Invalid ID",
+                                errorCode: "INVALID_ID",
+                            })];
+                    }
+                    return [4 /*yield*/, db.select().from(schema_1.User).where((0, drizzle_orm_1.eq)(schema_1.User.id, id))];
+                case 1:
+                    user = _a.sent();
+                    if (user.length > 0) {
+                        res.json({
+                            payload: user[0],
                             success: true,
                             message: "alright",
                             errorCode: null,
-                        };
-                        res.json(response);
-                        return [2 /*return*/];
-                }
-            });
+                        });
+                    }
+                    else {
+                        res.status(404).json({
+                            success: false,
+                            message: "User not found",
+                            errorCode: "NOT_FOUND",
+                        });
+                    }
+                    return [2 /*return*/];
+            }
         });
-    };
-    Application.prototype.getUserById = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var id, user;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        id = parseInt(req.params.id, 10);
-                        if (isNaN(id)) {
-                            return [2 /*return*/, res.status(400).json({
-                                    success: false,
-                                    message: "Invalid ID",
-                                    errorCode: "INVALID_ID",
-                                })];
-                        }
-                        return [4 /*yield*/, this.db.select().from(schema_1.User).where((0, drizzle_orm_1.eq)(schema_1.User.id, id))];
-                    case 1:
-                        user = _a.sent();
-                        if (user.length > 0) {
-                            res.json({
-                                payload: user[0],
-                                success: true,
-                                message: "alright",
-                                errorCode: null,
-                            });
-                        }
-                        else {
-                            res.status(404).json({
+    }); };
+    var createUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+        var _a, name_1, email, result, error_1;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 2, , 3]);
+                    _a = req.body, name_1 = _a.name, email = _a.email;
+                    return [4 /*yield*/, db.insert(schema_1.User).values({ name: name_1, email: email }).returning()];
+                case 1:
+                    result = _b.sent();
+                    res.json({
+                        payload: result[0],
+                        success: true,
+                        message: "User created successfully",
+                        errorCode: null,
+                    });
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_1 = _b.sent();
+                    console.log(error_1);
+                    res.status(400).json({
+                        success: false,
+                        message: "Failed to create user",
+                        errorCode: "CREATE_ERROR",
+                    });
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    }); };
+    var updateUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+        var id, _a, name_2, email, result, error_2;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 2, , 3]);
+                    id = parseInt(req.params.id, 10);
+                    if (isNaN(id)) {
+                        return [2 /*return*/, res.status(400).json({
+                                success: false,
+                                message: "Invalid ID",
+                                errorCode: "INVALID_ID",
+                            })];
+                    }
+                    _a = req.body, name_2 = _a.name, email = _a.email;
+                    return [4 /*yield*/, db
+                            .update(schema_1.User)
+                            .set({ name: name_2, email: email })
+                            .where((0, drizzle_orm_1.eq)(schema_1.User.id, id))
+                            .returning()];
+                case 1:
+                    result = _b.sent();
+                    if (result.length === 0) {
+                        return [2 /*return*/, res.status(404).json({
                                 success: false,
                                 message: "User not found",
                                 errorCode: "NOT_FOUND",
-                            });
-                        }
-                        return [2 /*return*/];
-                }
-            });
+                            })];
+                    }
+                    res.json({
+                        payload: result[0],
+                        success: true,
+                        message: "User updated successfully",
+                        errorCode: null,
+                    });
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_2 = _b.sent();
+                    res.status(400).json({
+                        success: false,
+                        message: "Failed to update user",
+                        errorCode: "UPDATE_ERROR",
+                    });
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
         });
-    };
-    Application.prototype.createUser = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, name_1, email, result, error_1;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _b.trys.push([0, 2, , 3]);
-                        _a = req.body, name_1 = _a.name, email = _a.email;
-                        return [4 /*yield*/, this.db
-                                .insert(schema_1.User)
-                                .values({ name: name_1, email: email })
-                                .returning()];
-                    case 1:
-                        result = _b.sent();
-                        res.json({
-                            payload: result[0],
-                            success: true,
-                            message: "User created successfully",
-                            errorCode: null,
-                        });
-                        return [3 /*break*/, 3];
-                    case 2:
-                        error_1 = _b.sent();
-                        console.log(error_1);
-                        res.status(400).json({
-                            success: false,
-                            message: "Failed to create user",
-                            errorCode: "CREATE_ERROR",
-                        });
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
-            });
+    }); };
+    var patchUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+        var id, updates, result, error_3;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    id = parseInt(req.params.id, 10);
+                    if (isNaN(id)) {
+                        return [2 /*return*/, res.status(400).json({
+                                success: false,
+                                message: "Invalid ID",
+                                errorCode: "INVALID_ID",
+                            })];
+                    }
+                    updates = req.body;
+                    return [4 /*yield*/, db
+                            .update(schema_1.User)
+                            .set(updates)
+                            .where((0, drizzle_orm_1.eq)(schema_1.User.id, id))
+                            .returning()];
+                case 1:
+                    result = _a.sent();
+                    if (result.length === 0) {
+                        return [2 /*return*/, res.status(404).json({
+                                success: false,
+                                message: "User not found",
+                                errorCode: "NOT_FOUND",
+                            })];
+                    }
+                    res.json({
+                        payload: result[0],
+                        success: true,
+                        message: "User patched successfully",
+                        errorCode: null,
+                    });
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_3 = _a.sent();
+                    res.status(400).json({
+                        success: false,
+                        message: "Failed to patch user",
+                        errorCode: "PATCH_ERROR",
+                    });
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
         });
-    };
-    Application.prototype.updateUser = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var id, _a, name_2, email, result, error_2;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _b.trys.push([0, 2, , 3]);
-                        id = parseInt(req.params.id, 10);
-                        if (isNaN(id)) {
-                            return [2 /*return*/, res.status(400).json({
-                                    success: false,
-                                    message: "Invalid ID",
-                                    errorCode: "INVALID_ID",
-                                })];
-                        }
-                        _a = req.body, name_2 = _a.name, email = _a.email;
-                        return [4 /*yield*/, this.db
-                                .update(schema_1.User)
-                                .set({ name: name_2, email: email })
-                                .where((0, drizzle_orm_1.eq)(schema_1.User.id, id))
-                                .returning()];
-                    case 1:
-                        result = _b.sent();
-                        if (result.length === 0) {
-                            return [2 /*return*/, res.status(404).json({
-                                    success: false,
-                                    message: "User not found",
-                                    errorCode: "NOT_FOUND",
-                                })];
-                        }
-                        res.json({
-                            payload: result[0],
-                            success: true,
-                            message: "User updated successfully",
-                            errorCode: null,
-                        });
-                        return [3 /*break*/, 3];
-                    case 2:
-                        error_2 = _b.sent();
-                        res.status(400).json({
-                            success: false,
-                            message: "Failed to update user",
-                            errorCode: "UPDATE_ERROR",
-                        });
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
-            });
+    }); };
+    var deleteUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+        var id, result, error_4;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    id = parseInt(req.params.id, 10);
+                    if (isNaN(id)) {
+                        return [2 /*return*/, res.status(400).json({
+                                success: false,
+                                message: "Invalid ID",
+                                errorCode: "INVALID_ID",
+                            })];
+                    }
+                    return [4 /*yield*/, db.delete(schema_1.User).where((0, drizzle_orm_1.eq)(schema_1.User.id, id)).returning()];
+                case 1:
+                    result = _a.sent();
+                    if (result.length === 0) {
+                        return [2 /*return*/, res.status(404).json({
+                                success: false,
+                                message: "User not found",
+                                errorCode: "NOT_FOUND",
+                            })];
+                    }
+                    res.json({
+                        payload: result[0],
+                        success: true,
+                        message: "User deleted successfully",
+                        errorCode: null,
+                    });
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_4 = _a.sent();
+                    res.status(400).json({
+                        success: false,
+                        message: "Failed to delete user",
+                        errorCode: "DELETE_ERROR",
+                    });
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
         });
-    };
-    Application.prototype.patchUser = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var id, updates, result, error_3;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        id = parseInt(req.params.id, 10);
-                        if (isNaN(id)) {
-                            return [2 /*return*/, res.status(400).json({
-                                    success: false,
-                                    message: "Invalid ID",
-                                    errorCode: "INVALID_ID",
-                                })];
-                        }
-                        updates = req.body;
-                        return [4 /*yield*/, this.db
-                                .update(schema_1.User)
-                                .set(updates)
-                                .where((0, drizzle_orm_1.eq)(schema_1.User.id, id))
-                                .returning()];
-                    case 1:
-                        result = _a.sent();
-                        if (result.length === 0) {
-                            return [2 /*return*/, res.status(404).json({
-                                    success: false,
-                                    message: "User not found",
-                                    errorCode: "NOT_FOUND",
-                                })];
-                        }
-                        res.json({
-                            payload: result[0],
-                            success: true,
-                            message: "User patched successfully",
-                            errorCode: null,
-                        });
-                        return [3 /*break*/, 3];
-                    case 2:
-                        error_3 = _a.sent();
-                        res.status(400).json({
-                            success: false,
-                            message: "Failed to patch user",
-                            errorCode: "PATCH_ERROR",
-                        });
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Application.prototype.deleteUser = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var id, result, error_4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        id = parseInt(req.params.id, 10);
-                        if (isNaN(id)) {
-                            return [2 /*return*/, res.status(400).json({
-                                    success: false,
-                                    message: "Invalid ID",
-                                    errorCode: "INVALID_ID",
-                                })];
-                        }
-                        return [4 /*yield*/, this.db
-                                .delete(schema_1.User)
-                                .where((0, drizzle_orm_1.eq)(schema_1.User.id, id))
-                                .returning()];
-                    case 1:
-                        result = _a.sent();
-                        if (result.length === 0) {
-                            return [2 /*return*/, res.status(404).json({
-                                    success: false,
-                                    message: "User not found",
-                                    errorCode: "NOT_FOUND",
-                                })];
-                        }
-                        res.json({
-                            payload: result[0],
-                            success: true,
-                            message: "User deleted successfully",
-                            errorCode: null,
-                        });
-                        return [3 /*break*/, 3];
-                    case 2:
-                        error_4 = _a.sent();
-                        res.status(400).json({
-                            success: false,
-                            message: "Failed to delete user",
-                            errorCode: "DELETE_ERROR",
-                        });
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Application.prototype.testGet = function (req, res) {
+    }); };
+    var testGet = function (req, res) {
         var query = req.query;
         console.log(query);
         try {
@@ -356,17 +315,29 @@ var Application = /** @class */ (function () {
             console.log("no query string");
         }
     };
-    Application.prototype.testPost = function (req, res) {
+    var testPost = function (req, res) {
         console.log("oh ye");
         res.status(200).send("oh yes");
     };
-    Application.prototype.start = function (port) {
-        if (port === void 0) { port = 3000; }
-        return this.app.run(port);
+    // Initialize routes
+    app.get("/users", getAllUsers);
+    app.get("/users/:id", getUserById);
+    app.post("/users", createUser);
+    app.put("/users/:id", updateUser);
+    app.patch("/users/:id", patchUser);
+    app.del("/users/:id", deleteUser);
+    app.post("/sum", mathOperation(sum_1.sum));
+    app.post("/sub", mathOperation(sum_1.sub));
+    app.post("/mul", mathOperation(sum_1.mul));
+    app.post("/div", mathOperation(sum_1.div));
+    app.get("/test", testGet);
+    app.post("/test", testPost);
+    return {
+        start: function (port) {
+            if (port === void 0) { port = 3000; }
+            return app.run(port);
+        },
     };
-    return Application;
-}());
-exports.Application = Application;
-// Create default instance
-var application = new Application();
+};
+var application = createApp();
 exports.default = application;

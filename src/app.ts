@@ -11,38 +11,11 @@ interface ApiResponse<T> {
   errorCode?: string | null;
 }
 
-export class Application {
-  private app: App;
-  private db: any; // Replace 'any' with proper drizzle type
+const createApp = () => {
+  const app = new App();
+  const db = drizzle("postgres://postgres:hoanglon@localhost:5432/8_7_2025");
 
-  constructor() {
-    this.app = new App();
-    this.db = drizzle("postgres://postgres:hoanglon@localhost:5432/8_7_2025");
-    this.initializeRoutes();
-  }
-
-  private initializeRoutes() {
-    // User routes
-    this.app.get("/users", this.getAllUsers.bind(this));
-    this.app.get("/users/:id", this.getUserById.bind(this));
-    this.app.post("/users", this.createUser.bind(this));
-    this.app.put("/users/:id", this.updateUser.bind(this));
-    this.app.patch("/users/:id", this.patchUser.bind(this));
-    this.app.del("/users/:id", this.deleteUser.bind(this));
-
-    // Math routes
-    this.app.post("/sum", this.mathOperation(sum));
-    this.app.post("/sub", this.mathOperation(sub));
-    this.app.post("/mul", this.mathOperation(mul));
-    this.app.post("/div", this.mathOperation(div));
-
-    // Test routes
-    this.app.get("/test", this.testGet.bind(this));
-    this.app.post("/test", this.testPost.bind(this));
-  }
-
-  // Helper method for math operations
-  private mathOperation(operation: (...args: number[]) => number) {
+  const mathOperation = (operation: (...args: number[]) => number) => {
     return (req, res) => {
       const numbers = req.body;
       try {
@@ -62,11 +35,10 @@ export class Application {
         });
       }
     };
-  }
+  };
 
-  // Route handlers
-  private async getAllUsers(req, res) {
-    const users = await this.db.select().from(User);
+  const getAllUsers = async (req, res) => {
+    const users = await db.select().from(User);
     const response: ApiResponse<any[]> = {
       payload: users,
       success: true,
@@ -74,9 +46,9 @@ export class Application {
       errorCode: null,
     };
     res.json(response);
-  }
+  };
 
-  private async getUserById(req, res) {
+  const getUserById = async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.status(400).json({
@@ -86,7 +58,7 @@ export class Application {
       });
     }
 
-    const user = await this.db.select().from(User).where(eq(User.id, id));
+    const user = await db.select().from(User).where(eq(User.id, id));
 
     if (user.length > 0) {
       res.json({
@@ -102,15 +74,12 @@ export class Application {
         errorCode: "NOT_FOUND",
       });
     }
-  }
+  };
 
-  private async createUser(req, res) {
+  const createUser = async (req, res) => {
     try {
       const { name, email } = req.body;
-      const result = await this.db
-        .insert(User)
-        .values({ name: name, email: email })
-        .returning();
+      const result = await db.insert(User).values({ name, email }).returning();
       res.json({
         payload: result[0],
         success: true,
@@ -119,16 +88,15 @@ export class Application {
       });
     } catch (error) {
       console.log(error);
-
       res.status(400).json({
         success: false,
         message: "Failed to create user",
         errorCode: "CREATE_ERROR",
       });
     }
-  }
+  };
 
-  private async updateUser(req, res) {
+  const updateUser = async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) {
@@ -140,7 +108,7 @@ export class Application {
       }
 
       const { name, email } = req.body;
-      const result = await this.db
+      const result = await db
         .update(User)
         .set({ name, email })
         .where(eq(User.id, id))
@@ -167,9 +135,9 @@ export class Application {
         errorCode: "UPDATE_ERROR",
       });
     }
-  }
+  };
 
-  private async patchUser(req, res) {
+  const patchUser = async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) {
@@ -181,7 +149,7 @@ export class Application {
       }
 
       const updates = req.body;
-      const result = await this.db
+      const result = await db
         .update(User)
         .set(updates)
         .where(eq(User.id, id))
@@ -208,9 +176,9 @@ export class Application {
         errorCode: "PATCH_ERROR",
       });
     }
-  }
+  };
 
-  private async deleteUser(req, res) {
+  const deleteUser = async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) {
@@ -221,10 +189,7 @@ export class Application {
         });
       }
 
-      const result = await this.db
-        .delete(User)
-        .where(eq(User.id, id))
-        .returning();
+      const result = await db.delete(User).where(eq(User.id, id)).returning();
 
       if (result.length === 0) {
         return res.status(404).json({
@@ -247,9 +212,9 @@ export class Application {
         errorCode: "DELETE_ERROR",
       });
     }
-  }
+  };
 
-  private testGet(req, res) {
+  const testGet = (req, res) => {
     const query = (req as any).query;
     console.log(query);
 
@@ -274,19 +239,33 @@ export class Application {
     } catch (e) {
       console.log("no query string");
     }
-  }
+  };
 
-  private testPost(req, res) {
+  const testPost = (req, res) => {
     console.log("oh ye");
     res.status(200).send("oh yes");
-  }
+  };
 
-  public start(port: number = 3000) {
-    return this.app.run(port);
-  }
-}
+  // Initialize routes
+  app.get("/users", getAllUsers);
+  app.get("/users/:id", getUserById);
+  app.post("/users", createUser);
+  app.put("/users/:id", updateUser);
+  app.patch("/users/:id", patchUser);
+  app.del("/users/:id", deleteUser);
 
-// Create default instance
-const application = new Application();
+  app.post("/sum", mathOperation(sum));
+  app.post("/sub", mathOperation(sub));
+  app.post("/mul", mathOperation(mul));
+  app.post("/div", mathOperation(div));
 
+  app.get("/test", testGet);
+  app.post("/test", testPost);
+
+  return {
+    start: (port: number = 3000) => app.run(port),
+  };
+};
+
+const application = createApp();
 export default application;

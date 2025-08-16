@@ -106,8 +106,19 @@ class App {
           for await (const chunk of req) {
             body += chunk;
           }
+
           if (body) {
-            reqCustom.body = JSON.parse(body);
+            const contentType = req.headers["content-type"] || "";
+
+            if (contentType.includes("application/json")) {
+              reqCustom.body = JSON.parse(body);
+            } else if (
+              contentType.includes("application/x-www-form-urlencoded")
+            ) {
+              reqCustom.body = Object.fromEntries(new URLSearchParams(body));
+            } else {
+              reqCustom.body = { raw: body };
+            }
           }
         }
       } catch (error) {

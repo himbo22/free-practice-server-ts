@@ -1,8 +1,8 @@
 {
   "name": "@himbo22/expresskpop",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "",
-  "main": "./dist/src/execute.js",
+  "main": "./dist/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc & node ./dist/src/execute.js"
@@ -14,6 +14,7 @@
   "dependencies": {
     "@types/node": "^24.2.0",
     "drizzle-orm": "^0.44.4",
+    "ejs": "^3.1.10",
     "path-to-regexp": "^8.2.0",
     "pg": "^8.16.3",
     "postgres": "^3.4.7",

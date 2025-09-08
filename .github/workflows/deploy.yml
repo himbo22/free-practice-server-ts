@@ -12,19 +12,34 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Deploy to AWS Lightsail
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies & build
+        run: |
+          npm ci --omit=dev
+          # nếu có build step (React, Next.js, Vue...) thì chạy luôn ở đây
+          # npm run build
+
+      - name: Deploy with rsync
+        uses: burnett01/rsync-deployments@7.1.0
+        with:
+          switches: -avzr --delete
+          path: ./
+          remote_path: ~/app
+          remote_host: ${{ secrets.LIGHTSAIL_HOST }}
+          remote_user: ${{ secrets.LIGHTSAIL_USER }}
+          remote_key: ${{ secrets.LIGHTSAIL_KEY }}
+
+      - name: Restart app on Lightsail
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_KEY }}
           port: 22
-          script: | 
+          script: |
             cd ~/app
-            git fetch origin f1
-            git checkout f1 || git checkout -b f1 origin/f1
-            git pull origin f1
-
-            # build / restart service ở đây
-            npm install --production
             pm2 restart myapp || pm2 start index.js --name myapp

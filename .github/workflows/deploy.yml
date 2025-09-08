@@ -21,9 +21,7 @@ jobs:
           port: 22
           script: | 
             cd ~/app
-            git pull origin main
-            # Nếu chạy docker-compose
-            # docker-compose down
-            # docker-compose up -d --build
-            # Hoặc restart systemd service
-            # sudo systemctl restart myapp
+            git fetch origin f1
+            git checkout f1 || git checkout -b f1 origin/f1
+            git pull origin f1
+            # build / restart service ở đây

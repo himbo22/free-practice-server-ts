@@ -42,4 +42,4 @@ jobs:
           port: 22
           script: |
             cd ~/app
-            pm2 restart myapp || pm2 start index.js --name myapp
+            pm2 restart myapp || pm2 start ~/app/index.js --name myapp

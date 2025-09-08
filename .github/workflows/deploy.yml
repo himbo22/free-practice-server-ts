@@ -24,4 +24,7 @@ jobs:
             git fetch origin f1
             git checkout f1 || git checkout -b f1 origin/f1
             git pull origin f1
+
             # build / restart service ở đây
+            npm install --production
+            pm2 restart myapp || pm2 start index.js --name myapp

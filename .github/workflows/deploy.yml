@@ -1,21 +1,29 @@
-name: Node.js CI
+name: F1 CICD
 
 on:
   push:
     branches: [ "f1" ]
 
 jobs:
-  build:
-
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    # - run: npm test
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Deploy to AWS Lightsail
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_KEY }}
+          port: 22
+          script: |
+            cd ~/app
+            git pull origin main
+            # Nếu chạy docker-compose
+            docker-compose down
+            docker-compose up -d --build
+            # Hoặc restart systemd service
+            # sudo systemctl restart myapp
